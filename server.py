@@ -1,5 +1,16 @@
 import socket
+from threading import Thread
 
+def Send(socket):
+    while True:
+        msg = input()
+        msg = msg.encode('utf-8')
+        socket.send(msg)
+def Reception(socket):
+    while True:
+        requete_server = socket.recv(500)
+        requete_server = requete_server.decode("utf-8")
+        print(requete_server)
 Host = socket.gethostbyname(socket.gethostname())
 Port = 6390
 
@@ -10,19 +21,12 @@ socket.bind((Host, Port))
 socket.listen()
 #le Script s'arrête jusqu'à une connexion
 
-client, ip = socket.accept()
-print("le client d'ip",ip,"s'est connecté")
+#Création du socket
+socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+socket.connect((Host,Port))
 
-while True:
-    requete_client = client.recv(400)
-    requete_client = requete_client.decode('utf-8')
-    print(requete_client)
-    if not requete_client: #si on perd la connexion
-        print("connexion perdu")
-        break
-    msg = input("-->")
-    msg = msg.encode("utf-8")
-    client.send(msg)
+envoi = Thread(target=Send,args=[socket])
+recep = Thread(target=Reception,args=[socket])
 
-client.close
-socket.close()
+envoi.start()
+recep.start()
